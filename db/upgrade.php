@@ -210,6 +210,7 @@ function xmldb_vpl_upgrade($oldversion = 0) {
         $table = new xmldb_table('vpl_screen_recording_log');
         // Adding fields to table vpl_screen_recording_log.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('vpl', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('daterecorded', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
@@ -222,6 +223,24 @@ function xmldb_vpl_upgrade($oldversion = 0) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+
+        // Define table vpl_code_recording_log to be created.
+        $table = new xmldb_table('vpl_screen_recording_log');
+        // Adding fields to table vpl_code_recording_log.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('vpl', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('daterecorded', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('code', XMLDB_TYPE_TEXT, 'big', null, XMLDB_NOTNULL, null, null);
+        // Adding keys to table vpl_code_recording_log.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for vpl_code_recording_log.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
         // Vpl savepoint reached.
         upgrade_mod_savepoint(true, 2016110600, 'vpl');
     }

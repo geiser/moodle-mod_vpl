@@ -14,7 +14,7 @@ define(["jquery"], function($) {
     var codeCaptureTime = 5000;
     var screenCaptureTime = 1000;
     var screenCaptureAutoSaveTime = 60000;
-    var loadVideoListTime =60000;
+    var loadVideoListTime = 60000;
 
     return /** @alias module:mod_vpl/code_logging */ {
 
