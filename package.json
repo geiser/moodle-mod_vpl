@@ -3,7 +3,8 @@
   "description": "Virtual Programming Lab module with improved functionalties",
   "license": "GPLv3",
   "authors": [
-    { "name": "Juan C. Rodríguez-del-Pino",
+    {
+      "name": "Juan C. Rodríguez-del-Pino",
       "email": "jcrodriguez@dis.ulpgc.es"
     },
     {
@@ -23,6 +24,7 @@
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-less": "^1.4.0",
     "grunt-contrib-uglify": "^2.0.0",
-    "grunt-contrib-watch": "^1.0.0"
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-load-gruntfile": "0.0.2"
   }
 }

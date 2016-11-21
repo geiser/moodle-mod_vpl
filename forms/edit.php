@@ -118,6 +118,36 @@ if($copy && $grader){
 }
 $vpl->print_header(get_string('edit',VPL));
 $vpl->print_view_tabs(basename(__FILE__));
+
+
+// injection of screen and code logging
+
+// $context = context_module::instance($options['id']);
+// if (has_capability('moodle/legacy:student', $context)) {
+if (user_has_role_assignment($USER->id, 5)) {
+    $PAGE->requires->js( new moodle_url( '/mod/vpl/editor/screenrecord/RecordRTC.min.js' ), true);
+    $PAGE->requires->js( new moodle_url( '/mod/vpl/editor/screenrecord/screenshot.js' ), true);
+    $PAGE->requires->js( new moodle_url( '/mod/vpl/editor/screenrecord/gumadapter.js' ), true);
+
+    $plugincfg = get_config('mod_vpl');
+    if (!empty($plugincfg->codecapturetime)) {
+        $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'setOptions',
+            array('codeCaptureTime'=>$plugincfg->codecapturetime,
+                  'screenCaptureTime'=>$plugincfg->screencapturetime,
+                  'screenCaptureAutoSaveTime'=>$plugincfg->screencaptureautosavetime));
+    }
+
+    $tag_id = 'vplide';
+    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initCodeCapture', array('id'=>$tag_id));
+
+    $url = new moodle_url('/mod/vpl/editor/screen_record_ajax.php', array('sesskey'=>sesskey()));
+    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initScreenCapture',
+        array('id' => $tag_id,
+              'url' => $url->out(),
+              'cmid' => $options['id'],
+              'userid' => $USER->id));
+}
+
 echo $OUTPUT->box_start();
 vpl_editor_util::print_tag($options,$files,($lastsub && !$copy));
 echo $OUTPUT->box_end();

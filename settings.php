@@ -101,3 +101,18 @@ $settings->add(new admin_setting_configselect($prefix.'discard_submission_period
                get_string('discard_submission_period', VPL),
                get_string('discard_submission_period_description', VPL),$default,$list));
 
+// screen-code capture options
+$settings->add(new admin_setting_heading('heading3', '', get_string('screencodecaptureoptions',VPL)));
+$settings->add(new admin_setting_configtext($prefix.'codecapturetime',
+    get_string('codecapturetime',VPL), get_string('codecapturetime_description',VPL), 5000, PARAM_INT, 6));
+$settings->add(new admin_setting_configtext($prefix.'screencapturetime',
+    get_string('screencapturetime',VPL), get_string('screencapturetime_description',VPL), 1000, PARAM_INT, 6));
+$settings->add(new admin_setting_configtext($prefix.'screencaptureautosavetime',
+    get_string('screencaptureautosavetime',VPL),
+    get_string('screencaptureautosavetime_description',VPL), 60000, PARAM_INT, 6));
+
+$settings->add(new admin_setting_heading('heading3', '', get_string('screenrecordingvideo',VPL)));
+$settings->add(new admin_setting_configtext($prefix.'loadvideolisttime',
+    get_string('loadvideolisttime',VPL),
+    get_string('loadvideolisttime_description',VPL), 60000, PARAM_INT, 6));
+
