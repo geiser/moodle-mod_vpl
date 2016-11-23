@@ -37,7 +37,7 @@ $instance = $DB->get_record('vpl', array("id" =>$cm->instance));
 $PAGE->set_cm($cm, $course, $instance);
 $PAGE->set_context($cm_ins);
 
-$PAGE->set_url('/mod/vpl/editor/live_stream.php',array('id' => $id, 'userid'=>$userid));
+$PAGE->set_url('/mod/vpl/editor/live_stream.php',array('id'=>$id, 'userid'=>$userid));
 $PAGE->set_title('Screen recording video of the VPL editor');
 $PAGE->set_heading($course->fullname. '- Screen recording video of the VPL editor');
 
@@ -92,27 +92,29 @@ if (is_null($userid)) {
     die;
 }
 
-$ajaxUrl = new moodle_url('/mod/vpl/editor/screen_record_ajax.php', array('sesskey'=>sesskey()));
-$videoUrl = new moodle_url('/mod/vpl/editor/screen_video.php', array('sesskey'=>sesskey()));
+$ajaxUrl = new moodle_url('/mod/vpl/editor/recording_ajax.php', array('sesskey'=>sesskey()));
+$videoUrl = new moodle_url('/mod/vpl/editor/video.php', array('sesskey'=>sesskey()));
 
 $sincetime = required_param('since',PARAM_INT);
 $videoids = $DB->get_fieldset_select('vpl_screen_recording_log', 'id',
-    'vpl = :vpl AND userid = :userid AND daterecorded >= :sincetime',
-    array('vpl'=>$cm->instance,
+    'cmid = :cmid AND vpl = :vpl AND userid = :userid AND daterecorded >= :sincetime',
+    array('cmid'=>$cm->id,
+          'vpl'=>$cm->instance,
           'userid'=>$userid,
           'sincetime'=>$sincetime));
 
 $plugincfg = get_config('mod_vpl');
 if (!empty($plugincfg->loadvideolisttime)) {
-    $PAGE->requires->js_call_amd('mod_vpl/code_logging',
+    $PAGE->requires->js_call_amd('mod_vpl/video_streaming',
         'setLoadVideoListTime', array('loadVideoListTime'=>$plugincfg->loadvideolisttime));
 }
 
 if (empty($videoids)) $videoids = array();
-$PAGE->requires->js_call_amd('mod_vpl/code_logging',
+$PAGE->requires->js_call_amd('mod_vpl/video_streaming',
     'initLiveStream', array('id'=>'myvideo',
                             'ajaxUrl' => $ajaxUrl->out(),
                             'videoUrl'=> $videoUrl->out(), 
+                            'cmid'=>$cm->id,
                             'vpl'=>$cm->instance,
                             'userid'=>$userid,
                             'sincetime'=>time(),

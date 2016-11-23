@@ -11,94 +11,176 @@
  */
 define(["jquery"], function($) {
     
-    var codeCaptureTime = 5000;
-    var screenCaptureTime = 1000;
-    var screenCaptureAutoSaveTime = 60000;
-    var loadVideoListTime = 60000;
+    var codeRecordingTime = 3000;
+    var autoSaveCodeRecordingTime = 0;
+
+    var screenRecordingTime = 3000;
+    var autoSaveScreenRecordingTime = 0;
 
     return /** @alias module:mod_vpl/code_logging */ {
 
-        setLoadVideoListTime: function (loadVideoListTime) {
-            loadVideoListTime = loadVideoListTime;
-        },
+        setOptions: function(codeRecordingTime, autoSaveCodeRecordingTime,
+                        screenRecordingTime, autoSaveScreenRecordingTime) {
+            codeRecordingTime = codeRecordingTime;
+            autoSaveCodeRecordingTime = autoSaveCodeRecordingTime;
 
-        setOptions: function(codeCaptureTime, screenCaptureTime, screenCaptureAutoSaveTime) {
-            codeCaptureTime = codeCaptureTime;
-            screenCaptureTime = screenCaptureTime;
-            screenCaptureAutoSaveTime = screenCaptureAutoSaveTime;
+            screenRecordingTime = screenRecordingTime;
+            autoSaveScreenRecordingTime = autoSaveScreenRecordingTime;
         },
 
         /**
-         * Initialize the code capture for the logging
+         * Initialize the code recording for the logging
          *
          * @param {nextSteps} array of ids or alias for the next steps
          */
-        initCodeCapture: function(id) {
+        initCodeRecording: function(id, url, cmid, userid) {
 
-            var lastTime = $.now();
-            var lastContents = new Array();
+            var codeRecordingTimeout;
+            var autoSaveCodeRecordingTimeout;
 
-            // infinity loop to convert html in image 
-            var looperCodeCapture = function() {
-                if (window.vpl_files == undefined) {
-                    return setTimeout(looperCodeCapture, codeCaptureTime);
+            var isCodeRecording = false;
+            var codeData = new Array();
+            var startTime = $.now();
+
+            var isVPLReady = function() {
+                return (window.vpl_files != undefined &&
+                        window.vpl_files != null &&
+                        window.vpl_files.length > 0);
+            }
+            
+            // looper to code recording
+            var codeRecordingLooper = function() {
+                if (!isVPLReady()) {
+                    codeRecordingTimeout = setTimeout(codeRecordingLooper, codeRecordingTime);
+                    return;
                 }
-
+                //
+                var files = new Array();
                 for (var i = 0; i < window.vpl_files.length; i++) {
-                    if (window.vpl_files_log[i] == undefined) {
-                        window.vpl_files_log[i] = new Array();
-                    }
-                    if (lastContents[i] != window.vpl_files[i].getContent()) {
-                        window.vpl_files_log[i].push({
-                            time: {from: lastTime, to: $.now()},
-                            content: window.vpl_files[i].getContent(),
-                            fileName: window.vpl_files[i].getFileName()
-                        });
-                        lastContents[i] = window.vpl_files[i].getContent();
+                    files.push({
+                        fileName: window.vpl_files[i].getFileName(),
+                        content: window.vpl_files[i].getContent()
+                    });
+                }
+                //
+                codeData.push({
+                    startTime: startTime,
+                    elapsedTime: $.now() - startTime,
+                    files: files
+                });
+                codeRecordingTimeout = setTimeout(codeRecordingLooper, codeRecordingTime);
+            };
+
+            // looper to auto save data
+            var autoSaveCodeRecordingLooper = function() {
+                if (!isVPLReady()) {
+                    autoSaveCodeRecordingTimeout = setTimeout(autoSaveCodeRecordingLooper, autoSaveCodeRecordingTime);
+                    return;
+                }
+                stopCodeRecording(function() {
+                    saveCodeRecording(function() { 
+                        codeData = new Array();
+                        startCodeRecording();
+                    });
+                });
+                autoSaveCodeRecordingTimeout = setTimeout(autoSaveCodeRecordingLooper, autoSaveCodeRecordingTime);
+            };
+
+            // save code recording
+            var saveCodeRecording = function(callback) {
+                if (codeData.length > 0) {
+                    // send to server to save data
+                    $.ajax({
+                        url: url,
+                        data: {
+                            cmid: cmid,
+                            userid: userid,
+                            action: "savecoderecording",
+                            codeData: codeData
+                        }, method: "POST"
+                    }).done(function() {
+                        codeData = new Array(); callback();
+                    }).fail(function() {
+                        console.log("ERROR: Can't send data "+codeData+" to "+url);
+                    });
+                }
+            };
+
+            // stop code recording
+            var stopCodeRecording = function(callback) {
+                isCodeRecording = false;
+                clearTimeout(codeRecordingTimeout);
+                if (autoSaveCodeRecordingTime > 0) {
+                    clearTimeout(autoSaveCodeRecordingTimeout);
+                }
+                if (callback != undefined && callback != null) {
+                    callback();
+                }
+            };
+
+            // start code recording
+            var startCodeRecording = function() {
+                if (!isCodeRecording) {
+                    codeRecordingLooper();
+                    if (autoSaveCodeRecordingTime > 0) {
+                        autoSaveCodeRecordingLooper();
                     }
                 }
-                lastTime = $.now();
-                setTimeout(looperCodeCapture, codeCaptureTime);
+                isCodeRecording = true;
             };
-             
-            $(window).load(function() {
-                window.vpl_files_log = new Array();
-                window.vpl_code_capture_enabled = true;
-                looperCodeCapture();
+
+            // stop and save data when a user blur the page
+            $(window).blur(function() {
+                stopCodeRecording(function() {
+                    saveCodeRecording(function() { });
+                });
             });
+
+            // stop and save data when a user navigate away from the page
+            $(window).unload(function() {
+                stopCodeRecording(function() {
+                    saveCodeRecording(function() { });
+                });
+            });
+           
+            // start recording when the windows is load
+            $(window).load(function() {
+                startCodeRecording();
+            });
+
+            // start recording again when a user focus the page
+            $(window).focus(function() {
+                startCodeRecording();
+            });
+
         },
 
         /**
-         * Initialize the screen capture for the logging
+         * Initialize the screen recording for the logging
          *
          * @param {nextSteps} array of ids or alias for the next steps
          */
-        initScreenCapture: function(id, url, cmid, userid) {
-            
+        initScreenRecording: function(id, url, cmid, userid) {
+
+            var screenRecordingTimeout;
+            var autoSaveScreenRecordingTimeout;
+
+            var isScreenRecording = false;
+            var elementToShare;
             var recorder; 
-            var isRecordingStarted = false;
-            var isStoppedRecording = false;
-            var lastAutoSaveTime = $.now();
+            var canvas2d;
+            var context; 
             
-            var elementToShare = document.getElementById(id);
-            var canvas2d = document.createElement('canvas');
-            var context = canvas2d.getContext('2d');
+            // is recording ready
+            var isScreenRecordingReady = function() {
+                return (recorder != undefined && recorder != null &&
+                        canvas2d != undefined && canvas2d != null &&
+                        context != undefined && context != null);
+            };
 
-            canvas2d.width = elementToShare.clientWidth;
-            canvas2d.height = elementToShare.clientHeight;
-            canvas2d.style.top = 0;
-            canvas2d.style.left = 0;
-            canvas2d.style.zIndex = -1;
-                
-            (document.body || document.documentElement).appendChild(canvas2d);
-            canvas2d.style.visibility = "hidden";
-            
-            webrtcUtils.enableLogs = false;
-
-            var stopAndSaveRecording = function(callback) {
-                if (!isRecordingStarted) return;
-                isRecordingStarted = false;
-                isStoppedRecording = true;
+            // save screen recording
+            var saveScreenRecording = function(callback) {
+                if (!isScreenRecordingReady()) return;
 
                 recorder.stopRecording(function() {
                     var blob = recorder.getBlob();
@@ -106,7 +188,7 @@ define(["jquery"], function($) {
                     var fd = new FormData();
                     fd.append('video-filename', 'video.webm');
                     fd.append('video-blob', blob);
-                    fd.append('action', "savescreenrecord");
+                    fd.append('action', "savescreenrecording");
                     fd.append('cmid', cmid);
                     fd.append('userid', userid);
 
@@ -116,153 +198,112 @@ define(["jquery"], function($) {
                         processData: false,
                         contentType: false,
                         method: "POST"
-                    }).done(function(msg) {
-                        lastAutoSaveTime = $.now();
-                        callback();
-                        // if (resume) webgazer.resume();
-                    }).fail(function() {
-                        // console msg
-                        // if (resume) webgazer.resume();
-                    }).always(function() {
-                        // if (resume) webgazer.resume();
-                        // resume recording
-                    });
+                    }).done(callback);
                 });
             };
 
-            // infinity loop to convert html in image 
-            var looperScreenCapture = function() {
-                if (isStoppedRecording) return;
-                if (!isRecordingStarted) {
-                    return setTimeout(looperScreenCapture, screenCaptureTime);
+            // looper to auto save data
+            var autoSaveScreenRecordingLooper = function() {
+                if (!isScreenRecordingReady()) {
+                    autoSaveScreenRecordingTimeout = setTimeout(autoSaveScreenRecordingLooper,
+                            autoSaveScreenRecordingTime);
+                    return;
                 }
+                stopScreenRecording(function() {
+                    saveScreenRecording(function() { 
+                        startScreenRecording();
+                    });
+                });
+                autoSaveScreenRecordingTimeout = setTimeout(autoSaveScreenRecordingLooper,
+                        autoSaveScreenRecordingTime);
+            };
 
+            // looper to screen recording (convert html5 to jpeg)
+            var screenRecordingLooper = function() {
+                if (!isScreenRecordingReady()) {
+                    screenRecordingTimeout = setTimeout(screenRecordingLooper, screenRecordingTime);
+                    return;
+                }
+                //
                 html2canvas(elementToShare, {
                     grabMouse: false,
                     onrendered: function(canvas) {
                         context.clearRect(0, 0, canvas2d.width, canvas2d.height);
                         context.drawImage(canvas, 0, 0, canvas2d.width, canvas2d.height);
-                        setTimeout(looperScreenCapture, screenCaptureTime);
+                        screenRecordingTimeout = setTimeout(screenRecordingLooper, screenRecordingTime);
                     }
                 });
             };
 
-            // infinity loop for autosave sending information to the server
-            var looperScreenCaptureAutoSave = function() {
-                if (isStoppedRecording) return;
-                if (!isRecordingStarted) {
-                    return setTimeout(looperScreenCaptureAutoSave, screenCaptureAutoSaveTime);
+            // stop screen recording
+            var stopScreenRecording = function(callback) {
+                isScreenRecording = false;
+                clearTimeout(screenRecordingTimeout);
+                if (autoSaveScreenRecordingTime > 0) {
+                    clearTimeout(autoSaveScreenRecordingTimeout);
                 }
+                if (callback != undefined && callback != null) {
+                    callback();
+                }
+            };
+
+            // start screen recording
+            var startScreenRecording = function() {
+                if (!isScreenRecording) {
                     
-                if ($.now() - lastAutoSaveTime >= screenCaptureAutoSaveTime) {
-                    stopAndSaveRecording(function() {
-                        initRecording();
-                    });
+                    if (elementToShare == undefined || elementToShare == null) {
+                        elementToShare = document.getElementById(id);
+                    }
+
+                    if (canvas2d == undefined || canvas2d == null) {
+                        canvas2d = document.createElement('canvas');
+                        canvas2d.width = elementToShare.clientWidth;
+                        canvas2d.height = elementToShare.clientHeight;
+                        canvas2d.style.top = 0;
+                        canvas2d.style.left = 0;
+                        canvas2d.style.zIndex = -1;
+
+                        (document.body || document.documentElement).appendChild(canvas2d);
+                        canvas2d.style.visibility = "hidden";    
+                    }
+
+                    context = canvas2d.getContext('2d');
+                    recorder = new RecordRTC(canvas2d, { type: 'canvas' });
+                    recorder.startRecording();
+
+                    screenRecordingLooper();
+                    if (autoSaveScreenRecordingTime > 0) {
+                        autoSaveScreenRecordingLooper();
+                    }
                 }
-                setTimeout(looperScreenCaptureAutoSave, screenCaptureAutoSaveTime);
+                isScreenRecording = true;
             };
-
-            var initRecording = function() {
-                if (isRecordingStarted) return;
-                isStoppedRecording = false;
-
-                recorder = new RecordRTC(canvas2d, { type: 'canvas' });
-                recorder.startRecording();
-                
-                looperScreenCapture();
-                looperScreenCaptureAutoSave();
-                isRecordingStarted = true;
-            };
-            
-            // start recording when the windows is load
-            $(window).load(function() {
-                initRecording();
-            });
 
             // stop and save data when a user blur the page
             $(window).blur(function() {
-                stopAndSaveRecording(function() {
-                    // don't nothing
+                stopScreenRecording(function() {
+                    saveScreenRecording(function() { });
                 });
             });
 
             // stop and save data when a user navigate away from the page
             $(window).unload(function() {
-                stopAndSaveRecording(function() {
-                        // don't nothing
+                stopScreenRecording(function() {
+                    saveScreenRecording(function() { });
                 });
+            });
+           
+            // start recording when the windows is load
+            $(window).load(function() {
+                startScreenRecording();
             });
 
             // start recording again when a user focus the page
             $(window).focus(function() {
-                initRecording();
-            });
-
-        },
-
-        /**
-         * Initialize the live Stream fom screen capture for the logging
-         *
-         * @param {nextSteps} array of ids or alias for the next steps
-         */
-        initLiveStream: function(id, ajaxUrl, videoUrl, vpl, userid, sincetime, videoids) {
-
-            var myvid = null;
-            var activeVideo = 0;
-            var videoListIds = [];
-            var startTime = sincetime;
-            var existMoreVideos = false;
-
-            // play live video list
-            var playNextVideo = function() {
-                if (videoListIds.length > activeVideo) {
-                    myvid.src = videoUrl + '&id=' + videoListIds[activeVideo];
-                    myvid.play();
-                    activeVideo++;
-                } else {
-                    existMoreVideos = false;
-                }
-            };
-
-            // infinity loop to obtain videoids
-            var looperLoadVideoList = function() {
-                $.ajax({
-                    url: ajaxUrl,
-                    data: {
-                        action: "listlivestreamvideoids",
-                        sincetime: startTime,
-                        vpl: vpl,
-                        userid: userid
-                    }, method: "POST"
-                }).done(function(result) {
-                    videoListIds = videoListIds.concat(result.videoids); 
-                    startTime = result.newtime;
-
-                    if (existMoreVideos) {
-                    } else if (result.videoids.length > 0) {
-                        existMoreVideos = true;
-                        playNextVideo();
-                    }
-                });
-                setTimeout(looperLoadVideoList, loadVideoListTime);
-            };
-
-            // load function
-            $(window).load(function() {
-                myvid = document.getElementById(id);
-                myvid.addEventListener('ended', function(e) {
-                    playNextVideo(); 
-                });
-
-                // videoids 
-                if (videoids.length > 0) {
-                    videoListIds = videoids;
-                    existMoreVideos = true;
-                    playNextVideo();
-                }
-                looperLoadVideoList();
+                startScreenRecording();
             });
         }
+
     };
 
 });

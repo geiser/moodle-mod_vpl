@@ -125,27 +125,28 @@ $vpl->print_view_tabs(basename(__FILE__));
 // $context = context_module::instance($options['id']);
 // if (has_capability('moodle/legacy:student', $context)) {
 if (user_has_role_assignment($USER->id, 5)) {
-    $PAGE->requires->js( new moodle_url( '/mod/vpl/editor/screenrecord/RecordRTC.min.js' ), true);
-    $PAGE->requires->js( new moodle_url( '/mod/vpl/editor/screenrecord/screenshot.js' ), true);
-    $PAGE->requires->js( new moodle_url( '/mod/vpl/editor/screenrecord/gumadapter.js' ), true);
+    $PAGE->requires->js(new moodle_url('/mod/vpl/editor/screenrecord/RecordRTC.min.js'));
+    $PAGE->requires->js(new moodle_url('/mod/vpl/editor/screenrecord/screenshot.js'));
+    //$PAGE->requires->js(new moodle_url('/mod/vpl/editor/screenrecord/gumadapter.js'));
 
     $plugincfg = get_config('mod_vpl');
-    if (!empty($plugincfg->codecapturetime)) {
+    if (!empty($plugincfg)) {
         $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'setOptions',
-            array('codeCaptureTime'=>$plugincfg->codecapturetime,
-                  'screenCaptureTime'=>$plugincfg->screencapturetime,
-                  'screenCaptureAutoSaveTime'=>$plugincfg->screencaptureautosavetime));
+            array('codeRecordingTime'=>1000*(float)$plugincfg->coderecordingtime,
+                  'autoSaveCodeRecordingTime'=>1000*(float)$plugincfg->autosavecoderecordingtime,
+                  'screenRecordingTime'=>1000*(float)$plugincfg->screenrecordingtime,
+                  'autoSaveScreenRecordingTime'=>1000*(float)$plugincfg->autosavescreenrecordingtime));
     }
 
     $tag_id = 'vplide';
-    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initCodeCapture', array('id'=>$tag_id));
-
-    $url = new moodle_url('/mod/vpl/editor/screen_record_ajax.php', array('sesskey'=>sesskey()));
-    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initScreenCapture',
-        array('id' => $tag_id,
-              'url' => $url->out(),
-              'cmid' => $options['id'],
-              'userid' => $USER->id));
+    $url = new moodle_url('/mod/vpl/editor/recording_ajax.php', array('sesskey'=>sesskey()));
+    $params = array(
+        'id' => $tag_id,
+        'url' => $url->out(),
+        'cmid' => $options['id'],
+        'userid' => $USER->id);
+    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initCodeRecording', $params);
+    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initScreenRecording', $params);
 }
 
 echo $OUTPUT->box_start();

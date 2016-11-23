@@ -32,11 +32,12 @@ require_sesskey();
 
 $return = false;
 
-if ($action == "savescreenrecord") {
+if ($action == "savescreenrecording") {
     if ($_FILES["video-blob"]["size"] > 0) {
         $cm = get_coursemodule_from_id('vpl', required_param('cmid', PARAM_INT));
 
         $screen_recording_log = new stdClass();
+        $screen_recording_log->cmid = $cm->id;
         $screen_recording_log->vpl = $cm->instance;
         $screen_recording_log->userid = required_param('userid', PARAM_INT);
         $screen_recording_log->daterecorded = time();
@@ -46,16 +47,30 @@ if ($action == "savescreenrecord") {
         $return = !empty($return) ? true : false;
     }
 
+} else if ($action == "savecoderecording") {
+    $cm = get_coursemodule_from_id('vpl', required_param('cmid', PARAM_INT));
+
+    $code_recording_log = new stdClass();
+    $code_recording_log->cmid = $cm->id;
+    $code_recording_log->vpl = $cm->instance;
+    $code_recording_log->userid = required_param('userid', PARAM_INT);
+    $code_recording_log->daterecorded = time();
+    $code_recording_log->code = json_encode($_POST['codeData']);
+ 
+    $return = $DB->insert_record('vpl_code_recording_log', $code_recording_log);
+    $return = !empty($return) ? true : false;
 } else if ($action == "listlivestreamvideoids") {
     $sincetime = required_param('sincetime', PARAM_INT);
+    $cmid = required_param('cmid', PARAM_INT);
     $vpl = required_param('vpl', PARAM_INT);
     $userid = required_param('userid', PARAM_INT);
     $newtime = time();
 
     $videoids = $DB->get_fieldset_select('vpl_screen_recording_log', 'id',
-        'vpl = :vpl AND userid = :userid AND '.
+        'cmid = :cmid AND vpl = :vpl AND userid = :userid AND '.
         'daterecorded >= :fromtime AND daterecorded < :totime',
         array('vpl'=>$vpl,
+              'cmid'=>$cmid,
               'userid'=>$userid,
               'fromtime'=>$sincetime,
               'totime'=>$newtime));

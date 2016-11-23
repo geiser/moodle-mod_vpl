@@ -61,7 +61,6 @@
 					|| isOptionAllowed('debug');
 
 			var files = new Array();
-            window.vpl_files = files; // ugly hack to make visible the files
 
 			var minNumberOfFiles = options.minfiles;
 			var maxNumberOfFiles = options.maxfiles;
@@ -1461,6 +1460,7 @@
 				activateGlobalModified();
 			}
 
+            window.vpl_files = files; // making files a global accessible
 		};
 	}
 })();

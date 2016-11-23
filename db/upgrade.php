@@ -209,8 +209,9 @@ function xmldb_vpl_upgrade($oldversion = 0) {
         // Define table vpl_screen_recording_log to be created.
         $table = new xmldb_table('vpl_screen_recording_log');
         // Adding fields to table vpl_screen_recording_log.
+       /* 
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0);
         $table->add_field('vpl', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('daterecorded', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
@@ -223,9 +224,27 @@ function xmldb_vpl_upgrade($oldversion = 0) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
+        */
+
+        $field = new xmldb_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'id');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        foreach($DB->get_records('vpl_screen_recording_log') as $record) {
+            $cmid = $DB->get_field_sql('SELECT cm.id FROM {course_modules} cm
+                INNER JOIN {modules} m ON m.id = cm.module
+                WHERE m.name = :name AND cm.instance = :instance',
+                array('name'=>'vpl', 'instance'=>$record->vpl), IGNORE_MULTIPLE);
+            if (empty($cmid)) $cmid = 0;
+            $record->cmid = $cmid;
+            $DB->update_record('vpl_screen_recording_log', $record);
+        }
+
+        $field = new xmldb_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'id');
+        $dbman->change_field_default($table, $field);
 
         // Define table vpl_code_recording_log to be created.
-        $table = new xmldb_table('vpl_screen_recording_log');
+        $table = new xmldb_table('vpl_code_recording_log');
         // Adding fields to table vpl_code_recording_log.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('cmid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);

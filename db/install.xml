@@ -103,6 +103,7 @@
         <INDEX NAME="user_vpl" UNIQUE="true" FIELDS="userid, vpl" COMMENT="Index for userid vpl"/>
       </INDEXES>
     </TABLE>
+
     <TABLE NAME="vpl_running_processes" COMMENT="Running processes in jail servers" PREVIOUS="vpl_assigned_variations" NEXT="vpl_screen_recording_log">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="userid"/>
