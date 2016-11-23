@@ -10,7 +10,8 @@ module.exports = function (grunt) {
     grunt.initConfig({
         uglify: {
             my_target: {
-                files: {'amd/build/code_logging.min.js': ['amd/src/code_logging.js']}
+                files: {'amd/build/code_logging.min.js': ['amd/src/code_logging.js'],
+                        'amd/build/video_streaming.min.js': ['amd/src/video_streaming.js']}
             }
         },
         watch: {
