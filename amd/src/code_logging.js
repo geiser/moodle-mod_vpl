@@ -137,12 +137,19 @@ define(["jquery"], function($) {
             });
 
             // stop and save data when a user navigate away from the page
-            $(window).unload(function() {
+            /*$(window).unload(function() {
                 stopCodeRecording(function() {
                     saveCodeRecording(function() { });
                 });
+            });*/
+ 
+            $(window).on("beforeunload", function(){
+                stopCodeRecording(function() {
+                    saveCodeRecording(function() { });
+                });
+                return "Are you sure you want to leave this page?";
             });
-           
+                      
             // start recording when the windows is load
             $(window).load(function() {
                 startCodeRecording();
@@ -287,12 +294,19 @@ define(["jquery"], function($) {
             });
 
             // stop and save data when a user navigate away from the page
-            $(window).unload(function() {
+            /*$(window).unload(function() {
                 stopScreenRecording(function() {
                     saveScreenRecording(function() { });
                 });
+            });*/
+
+            $(window).on("beforeunload", function(){
+                stopScreenRecording(function() {
+                    saveScreenRecording(function() { });
+                });
+                return "Are you sure you want to leave this page?";
             });
-           
+            
             // start recording when the windows is load
             $(window).load(function() {
                 startScreenRecording();
@@ -302,6 +316,7 @@ define(["jquery"], function($) {
             $(window).focus(function() {
                 startScreenRecording();
             });
+
         }
 
     };
