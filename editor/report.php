@@ -47,12 +47,15 @@ function get_solving_time($vpl, $userid, $sgrade = 8, $less = INF, $greater = 0)
     }
 
     // get unix timestamp of submission
-    $solved_time = $DB->get_field_sql('SELECT datesubmitted
+    $submission = $DB->get_record_sql('SELECT *
         FROM {vpl_submissions}
         WHERE grade >= :sgrade AND vpl = :vpl AND userid = :userid
               AND datesubmitted >= :greater AND datesubmitted <= :less
         ORDER BY id ASC', array('userid'=>$userid,
             'vpl'=>$vpl, 'sgrade'=>$sgrade, 'less'=>$less, 'greater'=>$greater));
+
+    $solved_time = $submission->datesubmitted;
+    $solved_grade = $submission->grade;
 
     $solved = false;
     $info_table = array();
@@ -118,6 +121,7 @@ function get_solving_time($vpl, $userid, $sgrade = 8, $less = INF, $greater = 0)
     return array("time"=>$total_elapsed_time,
         "start_time"=>floor($start_time/1000),
         "solved_time"=>$solved_time,
+        "solved_grade"=>$solved_grade,
         "info"=>$info_table);
 }
 
@@ -131,12 +135,13 @@ $cmid = required_param('id', PARAM_INT); // id
 $userid = optional_param('userid', 0, PARAM_INT);
 $less = optional_param('less', time(), PARAM_INT);
 $greater = optional_param('greater', 0, PARAM_INT);
+
+$sgrade = optional_param('grade', 8, PARAM_INT);
 $show_fullinfo = optional_param('fullinfo', false, PARAM_BOOL);
 
 $vpl = new mod_vpl($cmid);
 
 $vplid = $vpl->get_instance()->id;
-$sgrade = 8;
 
 $select = 'vpl = :vpl';
 $userids = $DB->get_fieldset_select('vpl_submissions', 'userid', $select, array('vpl'=>$vplid));
@@ -163,6 +168,7 @@ $table->head[] = 'UserID';
 $table->head[] = 'ActivityID';
 $table->head[] = 'StartTime';
 $table->head[] = 'SolvedTime';
+$table->head[] = 'SolvedGrade';
 $table->head[] = 'SpendTime';
 
 //echo "<th>UserID</th><th>ActivityID</th><th>StartTime</th><th>SolvedTime</th><th>SpendTime</th>";
@@ -192,12 +198,14 @@ foreach (array_unique($userids) as $userid) {
         $row[] = $cmid;
         $row[] = $resp["start_time"];
         $row[] = $resp["solved_time"];
+        $row[] = $resp["solved_grade"];
         $row[] = floor($resp["time"]/1000);
         
         $table->data[] = $row;
 
         foreach ($resp["info"] as $info) {
             $row = array ();
+            $row[] = '';
             $row[] = '';
             $row[] = '';
             $row[] = '';
@@ -218,6 +226,7 @@ foreach (array_unique($userids) as $userid) {
         $row[] = $cmid;
         $row[] = $resp["start_time"];
         $row[] = $resp["solved_time"];
+        $row[] = $resp["solved_grade"];
         $row[] = floor($resp["time"]/1000);
         
         $table->data[] = $row;
