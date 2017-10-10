@@ -28,13 +28,21 @@
 require(__DIR__.'/../../../config.php');
 
 $id = required_param('id', PARAM_TEXT);
+if ($id == -1) {
+    $videoids = explode(',',required_param('videoids', PARAM_TEXT));
+}
 //require_sesskey();
 
-$screen_recording_log = $DB->get_record('vpl_screen_recording_log', array('id' => $id));
-
-if ($screen_recording_log) {
-    header('Content-Type: video/webm');
+header('Content-Type: video/webm');
+//header('Content-Type: video/mp4');
+if ($id != -1) {
+    $screen_recording_log = $DB->get_record('vpl_screen_recording_log', array('id' => $id));
     echo($screen_recording_log->video);
+} else {
+    foreach($videoids as $id) {
+        $screen_recording_log = $DB->get_record('vpl_screen_recording_log', array('id' => $id));
+        echo($screen_recording_log->video);
+    }
 }
 
 die;

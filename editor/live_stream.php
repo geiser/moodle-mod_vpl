@@ -96,12 +96,15 @@ $ajaxUrl = new moodle_url('/mod/vpl/editor/recording_ajax.php', array('sesskey'=
 $videoUrl = new moodle_url('/mod/vpl/editor/video.php', array('sesskey'=>sesskey()));
 
 $sincetime = required_param('since',PARAM_INT);
-$videoids = $DB->get_fieldset_select('vpl_screen_recording_log', 'id',
+$video_menu = $DB->get_records_select_menu(
+    'vpl_screen_recording_log',
     'cmid = :cmid AND vpl = :vpl AND userid = :userid AND daterecorded >= :sincetime',
     array('cmid'=>$cm->id,
           'vpl'=>$cm->instance,
           'userid'=>$userid,
-          'sincetime'=>$sincetime));
+          'sincetime'=>$sincetime), 'id', 'id, daterecorded');
+
+$videoids = array_keys($video_menu);
 
 $plugincfg = get_config('mod_vpl');
 if (!empty($plugincfg->loadvideolisttime)) {
@@ -122,5 +125,33 @@ $PAGE->requires->js_call_amd('mod_vpl/video_streaming',
 
 echo $OUTPUT->header();
 ?><video id="myvideo" width="640" height="480" <?php if(optional_param('control',false,PARAM_BOOL)) echo 'controls'; ?> style="background:black"></video><?php
+
+echo '<p></p><hr/>';
+
+$table = new html_table();
+$table->head = array ();
+$table->head[] = 'Id';
+$table->head[] = 'Date recorded';
+$table->head[] = '';
+    
+foreach ($video_menu as $vid=>$daterecorded) {
+    $row = array ();
+    $row[] = $vid;
+    $row[] = date("d F Y H:i:s", $daterecorded);
+        
+    $row[] = html_writer::link(new moodle_url('/mod/vpl/editor/video.php', array('id'=>$vid)), 'Download');
+ 
+    $table->data[] = $row;
+}
+
+
+echo html_writer::start_tag('div', array('class'=>'no-overflow'));
+echo html_writer::table($table);
+echo html_writer::end_tag('div');
+
+echo html_writer::link(new moodle_url('/mod/vpl/editor/video.php', array('id'=>-1, 'videoids'=>implode(',',$videoids))), 'Download all in one video');
+ 
+
+
 echo $OUTPUT->footer();
 
