@@ -1294,6 +1294,18 @@ class mod_vpl {
                 $href = vpl_mod_href('forms/submissionview.php','id',$cmid,'userid',$userid);
                 $maintabs[]= new tabobject($tabname,$href,$text,$text);
             }
+            //video recording
+            if($manager) {
+                $text = 'Video recording';
+                $href = vpl_mod_href('editor/live_stream.php','id',$cmid);
+                $maintabs[] = new tabobject('live_stream.php',$href,$text,$text);
+            }
+            //code recording
+            if($manager) {
+                $text = 'Code logging';
+                $href = vpl_mod_href('code_logging.php','id',$cmid);
+                $maintabs[] = new tabobject('code_logging.php',$href,$text,$text);
+            }
         }
         switch($active){
             case 'view.php':
