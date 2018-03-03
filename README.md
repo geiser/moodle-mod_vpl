@@ -20,7 +20,7 @@ For more detail access the web site http://vpl.dis.ulpgc.es
 | userid | int | User ID stored in mdl_user as ID for the participant of course |
 | daterecorded | unix timestamp | Data/time for the recording in unix timestamp |
 | code | json list | Logging from VPL environment in list format [record1, record2, ...., recordN ], where each element of the list contains:
-```json
+
 { startTime: ${unix timestamp in mili-second when the user start an interaction with the VPL environment},
   elapsedTime: ${duration in mili-second for the interaction with the VPL environment},
   files: ${list of files modified by the interaction
@@ -30,7 +30,7 @@ For more detail access the web site http://vpl.dis.ulpgc.es
              }
            }
  }
-``` |
+|
 
 
 
