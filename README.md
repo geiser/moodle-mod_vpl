@@ -22,17 +22,21 @@ For more detail access the web site http://vpl.dis.ulpgc.es
 | code | json list | Logging from VPL environment |
 
 
-The field "code" registers the logging information in the format [record_1, record_2, ...., record_N ], where each record is:
+The field "code" registers the interaction with the VPL enviroment in the format [interaction_1, interaction_2, ...., interaction_N ], where each "interaction_N" is defined as follow:
 
 ```
-{ startTime: ${unix timestamp in mili-second when the user start an interaction with the VPL environment},
-  elapsedTime: ${duration in mili-second for the interaction with the VPL environment},
-  files: ${list of files modified by the interaction
-            [file-record1, file-record2, ..., file-recordM], where each file-record is recording as:
-            { fileName: ${file name}
-              , content: ${content of the file}
-             }
-           }
- }
- ```
+{
+  startTime: ${unix timestamp in mili-seconds when the user start the interaction},
+  elapsedTime: ${duration in mili-seconds of the interaction},
+  files: [file-record1, file-record_2, ..., file-record_M]
+}
+```
 
+files: [file-record_1, file-record_2, ..., file-record_M] containts the list of files that have been modified by the interaction, where each "file-record_1" is defined as follow:
+
+```
+{
+  fileName: ${file name},
+  content: ${content of the file}
+}
+```
