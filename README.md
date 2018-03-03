@@ -22,7 +22,7 @@ For more detail access the web site http://vpl.dis.ulpgc.es
 | code | json list | Logging from VPL environment |
 
 
-The field code registers information in the list format [record1, record2, ...., recordN ], where each record is defined as:
+The field "code" registers the logging information in the format [record_1, record_2, ...., record_N ], where each record is:
 
 ```
 { startTime: ${unix timestamp in mili-second when the user start an interaction with the VPL environment},
