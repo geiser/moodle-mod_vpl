@@ -102,7 +102,7 @@ $settings->add(new admin_setting_configselect($prefix.'discard_submission_period
                get_string('discard_submission_period_description', VPL),$default,$list));
 
 // recording options
-$settings->add(new admin_setting_heading('heading3', '', get_string('recordingoptions',VPL)));
+$settings->add(new admin_setting_heading('heading3', '', get_string('codesandscreenrecordingopts',VPL)));
 
 $settings->add(new admin_setting_configtext($prefix.'coderecordingtime',
     get_string('coderecordingtime',VPL),

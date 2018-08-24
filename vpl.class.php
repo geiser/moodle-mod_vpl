@@ -129,7 +129,7 @@ class mod_vpl {
      * Internal var for vpl
      * @var object $instance
      */
-    protected $instance;
+    public $instance;
 
     /**
      * Internal var object to requied file group manager

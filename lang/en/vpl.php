@@ -401,3 +401,22 @@ $string['variations_help'] = '<p>A set of variations can be defined for an activ
 <p>Each variation has an identification code and a description. The identification code is used by the <b>vpl_enviroment.sh</b> file to pass
 the variation assigned to each student to the script files. The description, formatted in HTML, is shown to the students that have assigned
 the corresponding variation.</p>';
+
+$string['codesandscreenrecordingopts'] = 'Code and screen recording options';
+$string['iscoderecording'] = 'Is the code recording turned on?';
+$string['isscreenrecording'] = 'Is the screen recording turned on?';
+
+$string['coderecordingtime'] = 'Code snapshot time';
+$string['coderecordingtime_description'] = 'Interval of time in seconds to take a snapshot of the code recording';
+
+$string['autosavecoderecordingtime'] = 'Autocode save recording time';
+$string['autosavecoderecordingtime_description'] = 'Interval of time in seconds to auto save the code recording (0 indicates that the code recording is auto saved when the user leaves the interact with the VPL editor)';
+
+$string['screenrecordingtime'] = 'Screen recording time';
+$string['screenrecordingtime_description'] = 'Interval of time in seconds to take a snapshot of the screen recording';
+
+$string['autosavescreenrecordingtime'] = 'Autoscreen save recording time';
+$string['autosavescreenrecordingtime_description'] = 'Interval of time in seconds to auto save the code screen recording (0 indicates that the screen recording is auto saved when the user leaves the interact with the VPL editor)';
+
+$string['loadvideolisttime'] = 'Load video list time';
+$string['loadvideolisttime_description'] = 'Interval of time to load video in the playlist';

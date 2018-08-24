@@ -263,6 +263,21 @@ function xmldb_vpl_upgrade($oldversion = 0) {
         // Vpl savepoint reached.
         upgrade_mod_savepoint(true, 2016110600, 'vpl');
     }
+
+    if ($oldversion < 2016110602) {
+        $table = new xmldb_table('vpl');
+        $field = new xmldb_field('iscoderecording', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '1', 'emailteachers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('isscreenrecording', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'iscoderecording');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2016110602, 'vpl');
+    }
     
     return true;
 }

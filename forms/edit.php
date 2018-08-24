@@ -145,8 +145,13 @@ if (user_has_role_assignment($USER->id, 5)) {
         'url' => $url->out(),
         'cmid' => $options['id'],
         'userid' => $USER->id);
-    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initCodeRecording', $params);
-    $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initScreenRecording', $params);
+    
+    if ($vpl->instance->iscoderecording) {
+        $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initCodeRecording', $params);
+    }
+    if ($vpl->instance->isscreenrecording) {
+        $PAGE->requires->js_call_amd('mod_vpl/code_logging', 'initScreenRecording', $params);
+    }
 }
 
 echo $OUTPUT->box_start();

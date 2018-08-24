@@ -88,6 +88,10 @@ class mod_vpl_mod_form extends moodleform_mod {
         $mform->setType('requirednet', PARAM_TEXT);
         $mform->setDefault('requirednet', '');
         $mform->setAdvanced('requirednet');
+        // screen recording & video recording
+        $mform->addElement('header', 'codesandscreenrecording', get_string('codesandscreenrecordingopts', VPL));
+        $mform->addElement('selectyesno', 'iscoderecording', get_string('iscoderecording',VPL));
+        $mform->addElement('selectyesno', 'isscreenrecording', get_string('isscreenrecording',VPL));
         // grade
         $this->standard_grading_coursemodule_elements();
         $mform->addElement('selectyesno', 'visiblegrade', get_string('visiblegrade',VPL));
